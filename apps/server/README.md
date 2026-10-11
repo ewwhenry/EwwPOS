@@ -1,124 +1,143 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# EwwPOS — Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API for [EwwPOS](../..), the Point of Sale and inventory management
+system. Built with [NestJS](https://nestjs.com) 12 and validated with
+[Zod](https://zod.dev).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+The server exposes a REST API consumed by the web app. It is part of a Bun +
+Turborepo monorepo and shares its schemas and types with the rest of the
+workspace through the [`@repo/types`](../../packages/types) package.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Runtime:** Node.js (via NestJS), TypeScript
+- **Port:** `3001` (override with the `PORT` env var)
+- **Validation:** Zod 4 (`@repo/types`)
+- **Storage:** in memory — data is reset on every restart (see [Roadmap](#roadmap))
 
-## Project setup
+## Getting started
+
+Run these from the repository root unless noted otherwise.
 
 ```bash
-$ bun install
+bun install
 ```
 
-## Compile and run the project
+### Development
 
 ```bash
-# development
-$ bun run start
-
 # watch mode
-$ bun run start:dev
+bun --filter server run start:dev
 
-# production mode
-$ bun run start:prod
+# normal start
+bun --filter server run start
+
+# debug mode (--debug --watch)
+bun --filter server run start:debug
 ```
 
-## Run tests
+The API is then available at <http://localhost:3001>.
+
+### Production
 
 ```bash
-# unit tests
-$ bun run test
-
-# e2e tests
-$ bun run test:e2e
-
-# test coverage
-$ bun run test:cov
+bun --filter server run build
+bun --filter server run start:prod   # runs node dist/main
 ```
 
-## Deployment
+## API
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Base URL: `http://localhost:3001`
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Method | Path              | Description            |
+| ------ | ----------------- | ---------------------- |
+| `GET`  | `/`               | Health/greeting check  |
+| `GET`  | `/inventory/all`  | List all products      |
+| `POST` | `/inventory/new`  | Create a product       |
 
-```bash
-$ bun install -g @nestjs/mau
-$ mau deploy
+### Create a product
+
+```http
+POST /inventory/new
+Content-Type: application/json
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
-
-```bash
-$ bun install @nestjs/observe
+```json
+{
+  "sku": "SKU-001",
+  "barcode": "1234567890123",
+  "name": "Whole milk 1L",
+  "description": "Pasteurized whole milk",
+  "measurement_unit": "l",
+  "cost_price": 1.2,
+  "price": 1.8,
+  "wholesale_price": 1.5,
+  "tax_rate": 0.16,
+  "tax_id": null,
+  "min_stock": 10,
+  "is_stock_tracked": true,
+  "is_weighable": false,
+  "category_id": "dairy"
+}
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+On success the server returns the created product. The payload is validated
+with [`createProductBodySchema`](../../packages/types/src/index.ts); invalid
+requests return `400 Bad Request` with a per-field `errors` map:
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+```json
+{
+  "status_code": 400,
+  "message": "Bad Request.",
+  "errors": {
+    "sku": ["El SKU es obligatorio"]
+  }
+}
+```
 
-## Resources
+> **Input handling.** The schema also accepts `form-urlencoded` bodies, so it
+> coerces numbers with `z.coerce.number()`, maps empty strings to `null`, and
+> parses booleans as the literal string `"true"` (never through
+> `Boolean("false")`, which would incorrectly evaluate to `true`).
 
-Check out a few resources that may come in handy when working with NestJS:
+## Project structure
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```
+apps/server/
+├── src/
+│   ├── inventory/
+│   │   ├── inventory.controller.ts   # HTTP endpoints
+│   │   ├── inventory.service.ts      # Business logic (in-memory store)
+│   │   └── inventory.module.ts       # Inventory module
+│   ├── app.controller.ts             # Root controller
+│   ├── app.service.ts
+│   ├── app.module.ts
+│   └── main.ts                       # Bootstrap (listens on :3001)
+├── test/                             # e2e tests
+├── nest-cli.json
+└── vitest.config*.ts
+```
 
-## Support
+## Scripts
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+| Script               | Description                              |
+| -------------------- | ---------------------------------------- |
+| `start`              | Start the server                         |
+| `start:dev`          | Start in watch mode                      |
+| `start:debug`        | Start in debug + watch mode              |
+| `start:prod`         | Run the compiled build (`node dist/main`)|
+| `build`              | Compile with the Nest CLI                |
+| `format`             | Format with Prettier                     |
+| `lint`               | Lint with Oxlint (type-aware)            |
+| `test`               | Run unit tests (Vitest)                  |
+| `test:watch`         | Run tests in watch mode                  |
+| `test:cov`           | Run tests with coverage                  |
+| `test:e2e`           | Run end-to-end tests                     |
 
-## Stay in touch
+Run any script with `bun --filter server run <script>`.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Roadmap
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [ ] Replace the in-memory store with a real database.
+- [ ] Add authentication and roles.
+- [ ] Add categories, sales and reporting modules.
